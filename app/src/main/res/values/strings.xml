@@ -1,3 +1,14 @@
 <resources>
-    <string name="app_name">ComputerNews</string>
+    <string name="app_name">电脑极客</string>
+    <string name="loading">加载中...</string>
+
+
+    <!--新闻type-->
+    <string name="higo">头条</string>
+    <string name="player">玩家</string>
+    <string name="indoorsfun">科技宅</string>
+    <string name="look">业界</string>
+
+
+    <string name="loading_finish">加载完成</string>
 </resources>
