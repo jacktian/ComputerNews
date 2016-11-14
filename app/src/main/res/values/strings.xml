@@ -11,4 +11,7 @@
 
 
     <string name="loading_finish">加载完成</string>
+    <string name="errorTip">出错了</string>
+    <string name="check_whether_the_network_is_normal">请检查您的网络是否开启</string>
+    <string name="try_again">再次尝试</string>
 </resources>

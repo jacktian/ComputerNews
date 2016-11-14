@@ -13,9 +13,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.example.ruolan.computernews.constant.Contants;
+import com.example.ruolan.computernews.utils.NetWorkUtils;
 import com.example.ruolan.computernews.widget.FlyBanner;
 import com.example.ruolan.computernews.constant.HttpUrlPaths;
 import com.example.ruolan.computernews.activity.NewsDetailActivity;
@@ -35,13 +38,14 @@ import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Response;
+import rx.internal.schedulers.NewThreadWorker;
 
 /**
  * Created by Administrator on 2016/11/10.
  * 新闻fragment
  */
 
-public class ComputerNewsFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+public class ComputerNewsFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener, View.OnClickListener {
 
     //新闻类型
     private String mType;
@@ -69,6 +73,12 @@ public class ComputerNewsFragment extends Fragment implements SwipeRefreshLayout
     private FlyBanner mFlyBanner;
 
 
+    private RelativeLayout mErrorView;
+    private Button mTryAgain;
+
+    boolean isHasData = false;
+
+
     public static ComputerNewsFragment newInstance(String index, String title) {
         // Required empty public constructor
         Bundle bundle = new Bundle();
@@ -89,8 +99,38 @@ public class ComputerNewsFragment extends Fragment implements SwipeRefreshLayout
         bannerUrl = HttpUrlPaths.getNewBanner(mType);
         newsUrl = HttpUrlPaths.getNewsData(mType, startIndex, endIndex);
         initView(view);
-        initData();
+
+        if (NetWorkUtils.isOnline(getContext())) {
+            initData();
+
+            if (!isHasData) {
+                isHasData = false;
+                new Handler().postDelayed(() -> {
+                    errorHide();
+                    OkGo.getInstance().cancelTag(this);  //取消此次请求
+                }, 5000);
+            }
+        } else {
+            errorShow();
+        }
         return view;
+    }
+
+    /**
+     * 隐藏error
+     */
+    private void errorHide() {
+        mErrorView.setVisibility(View.VISIBLE);
+        mRefreshLayout.setRefreshing(false);
+        mRefreshLayout.setVisibility(View.GONE);
+    }
+
+    /**
+     * 显示error
+     */
+    private void errorShow() {
+        mRefreshLayout.setVisibility(View.GONE);
+        mErrorView.setVisibility(View.VISIBLE);
     }
 
     private void initData() {
@@ -106,6 +146,9 @@ public class ComputerNewsFragment extends Fragment implements SwipeRefreshLayout
                         }.getType();
                         NewsBean bean = new Gson().fromJson(s, type);
                         if (bean.getCount() > 0) {
+                            isHasData = true;
+                            mErrorView.setVisibility(View.GONE);
+                            mRefreshLayout.setVisibility(View.VISIBLE);
                             mRefreshLayout.setRefreshing(false);  //加载完事消失加载条
                             mDatasEntities = bean.getDatas();
                             totalPage = bean.getEndIndex() / 20;
@@ -187,6 +230,7 @@ public class ComputerNewsFragment extends Fragment implements SwipeRefreshLayout
 
     private void initView(View view) {
         mRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.refresh);
+        mRefreshLayout.setVisibility(View.VISIBLE);
         mRefreshLayout.setColorSchemeColors(Color.YELLOW, Color.RED, Color.BLUE, Color.GREEN);
         //能够模拟进入就刷新
         mRefreshLayout.post(() -> mRefreshLayout.setRefreshing(true));
@@ -216,6 +260,11 @@ public class ComputerNewsFragment extends Fragment implements SwipeRefreshLayout
         });
         //mNewsAdapter = new NewsAdapter(getContext(),mDatasEntities);
         //  mRecyclerView.setAdapter(mNewsAdapter);
+
+        mErrorView = (RelativeLayout) view.findViewById(R.id.error_view);
+        mErrorView.setVisibility(View.GONE);
+        mTryAgain = (Button) view.findViewById(R.id.errorStateButton);
+        mTryAgain.setOnClickListener(this);
     }
 
     /**
@@ -268,7 +317,24 @@ public class ComputerNewsFragment extends Fragment implements SwipeRefreshLayout
     @Override
     public void onRefresh() {
 
+        isHasData = false;
         refreshData();
+        showErrorView();
+    }
+
+    /**
+     * 判断是否有网，和网络较慢导致数据请求失败的提示
+     */
+    private void showErrorView() {
+        mErrorView.setVisibility(View.GONE);
+        mRefreshLayout.setVisibility(View.VISIBLE);
+        if (!isHasData && !NetWorkUtils.isOnline(getContext())) {
+            isHasData = false;
+            new Handler().postDelayed(() -> {
+                errorHide();
+                OkGo.getInstance().cancelTag(this);  //取消此次请求
+            }, 5000);
+        }
     }
 
     private void refreshData() {
@@ -313,5 +379,14 @@ public class ComputerNewsFragment extends Fragment implements SwipeRefreshLayout
                     }
                 });
 
+    }
+
+    @Override
+    public void onClick(View view) {
+        if (view.getId()==R.id.errorStateButton){
+            isHasData = false;
+            initData();
+            showErrorView();
+        }
     }
 }
