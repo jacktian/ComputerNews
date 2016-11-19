@@ -43,7 +43,6 @@
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
                 android:gravity="center"
-                android:maxLines="1"
                 android:padding="10dp"
                 android:text="雷军、罗永浩微博哦互抛媚眼"
                 android:textColor="@color/black595959"

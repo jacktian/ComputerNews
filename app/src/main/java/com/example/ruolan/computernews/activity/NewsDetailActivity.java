@@ -62,7 +62,14 @@ public class NewsDetailActivity extends BaseActivity {
                             mTvauthor.setText(bean.getEditorName() + "");
                         }
                         mTvpublishtime.setText(bean.getPublishTime());
-                        mWebview.loadData(bean.getContent(), "text/html; charset=UTF-8", null);
+                       // mWebview.getSettings().setDomStorageEnabled(true);
+                       // mWebview.getSettings().setLoadWithOverviewMode(true);
+                      //  mWebview.getSettings().setLoadsImagesAutomatically(true);
+
+                       String htmlData = bean.getContent().replace("<img", "<img style='max-width:100%;height:auto;'");
+
+
+                        mWebview.loadData(htmlData, "text/html; charset=UTF-8", null);
 
                     }, throwable -> {
                     });
@@ -83,7 +90,7 @@ public class NewsDetailActivity extends BaseActivity {
         this.mTvname = (TextView) findViewById(R.id.tv_name);
         this.mTvtitle = (TextView) findViewById(R.id.tv_title);
         mIcBack = (ImageView) findViewById(R.id.img_back);
-        mIcBack.setOnClickListener(v->finish());
+        mIcBack.setOnClickListener(v -> finish());
 
         if (!TextUtils.isEmpty(title)) {
             mTvtitle.setText(title);

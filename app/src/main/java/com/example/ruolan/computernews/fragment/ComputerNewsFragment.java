@@ -101,13 +101,19 @@ public class ComputerNewsFragment extends Fragment implements SwipeRefreshLayout
         initView(view);
 
         if (NetWorkUtils.isOnline(getContext())) {
+
             initData();
 
             if (!isHasData) {
-                isHasData = false;
+                //isHasData = false;
                 new Handler().postDelayed(() -> {
-                    errorHide();
-                    OkGo.getInstance().cancelTag(this);  //取消此次请求
+                    if (!isHasData) {  //如果5秒之后还没有请求到数据
+                        isHasData = false;
+                        errorHide();
+                        OkGo.getInstance().cancelTag(this);  //取消此次请求
+                    } else {
+
+                    }
                 }, 5000);
             }
         } else {
